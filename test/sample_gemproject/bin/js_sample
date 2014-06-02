@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+
+require 'js_sample/js_sampleapp'
+
+JS_SampleApp.new.run(ARGV)
+

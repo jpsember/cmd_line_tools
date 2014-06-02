@@ -1,0 +1,28 @@
+#!/usr/bin/env ruby
+
+require 'js_base/test'
+
+class TestTwo <  Test::Unit::TestCase
+
+  def setup
+    enter_test_directory
+  end
+
+  def teardown
+    leave_test_directory
+  end
+
+  def test_success
+    assert_raise(IllegalStateException) do
+      raise IllegalStateException,"failing as expected"
+    end
+  end
+
+  def test_fail
+    assert_raise(IllegalStateException) do
+      raise ArgumentError,"raising wrong kind of exception"
+    end
+  end
+
+end
+

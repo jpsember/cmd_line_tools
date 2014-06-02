@@ -1,0 +1,56 @@
+
+
+Calling grp with args: 's txt'
+
+
+./alpha.txt
+     1 | The time has come
+     2 | the walrus said
+     3 | to speak of many things
+     4 | of Shoes, and Ships, and sealing wax
+
+./beta/gamma.txt
+     1 | Of Cabbages and Kings
+Running again, without arguments
+
+
+Calling grp with args: ''
+
+
+./alpha.txt
+     1 | The time has come
+     2 | the walrus said
+     3 | to speak of many things
+     4 | of Shoes, and Ships, and sealing wax
+
+./beta/gamma.txt
+     1 | Of Cabbages and Kings
+Running again, with just a new pattern
+
+
+Calling grp with args: 't'
+
+
+./alpha.txt
+     1 | The time has come
+     2 | the walrus said
+     3 | to speak of many things
+
+./beta/alphabet_soup.txt
+     1 | Another file beginning with 'alpha'
+Running again, forgetting
+
+
+Calling grp with args: '-f'
+
+
+Example:
+     grp velocity cpp h
+         Searches for all occurrences of 'velocity' in *.cpp, *.h recursively
+
+     grp
+         Repeats the last search
+     --pattern, -p <s>:   search pattern
+  --extensions, -e <s>:   filename extensions 'xxx/yyy/zzz...'
+          --forget, -f:   forget saved arguments
+            --help, -h:   Show this message

@@ -1,0 +1,24 @@
+#!/usr/bin/env ruby
+
+require 'js_base/test'
+
+class TestOne <  Test::Unit::TestCase
+
+  def setup
+    enter_test_directory
+  end
+
+  def teardown
+    leave_test_directory
+  end
+
+  def test_success
+    assert_equal(15,5*3)
+  end
+
+  def test_fail
+    assert_equal("apple","orange")
+  end
+
+end
+

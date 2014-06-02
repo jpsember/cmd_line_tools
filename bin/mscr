@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+
+require 'cmd_line_tools/mscr'
+
+MScr.new.run(ARGV)
+

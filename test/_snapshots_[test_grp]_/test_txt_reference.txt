@@ -1,0 +1,13 @@
+
+
+Calling grp with args: 's txt'
+
+
+./alpha.txt
+     1 | The time has come
+     2 | the walrus said
+     3 | to speak of many things
+     4 | of Shoes, and Ships, and sealing wax
+
+./beta/gamma.txt
+     1 | Of Cabbages and Kings
