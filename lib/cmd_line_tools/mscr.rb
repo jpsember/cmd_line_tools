@@ -91,5 +91,5 @@ EOS
 end
 
 if __FILE__ == $0
-  Script.new.run
+  MScr.new.run
 end
