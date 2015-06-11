@@ -19,4 +19,3 @@ Gem::Specification.new do |s|
   s.license     = 'MIT'
 end
 
-
