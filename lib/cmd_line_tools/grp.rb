@@ -24,6 +24,7 @@ EOS
       opt :pattern,"search pattern",:type=>:string
       opt :extensions,"filename extensions 'xxx/yyy/zzz...'",:type=>:string
       opt :forget,"forget saved arguments"
+      opt :verbose,"verbose"
     end
 
     # set default values
@@ -47,6 +48,7 @@ EOS
 
     @expr ||= options[:pattern]
     @extensions = options[:extensions].split('/') if options[:extensions]
+    @verbose = options[:verbose]
 
     # Process command line arguments
     #
@@ -106,8 +108,10 @@ EOS
     cmd += " -n"
     cmd += " -e #{@expr}"
     cmd += " ."
+    puts cmd if @verbose
 
     res,succ = scall(cmd, false)
+    puts "Result from shell command:\n#{res}" if @verbose
     show_result(res) if succ
   end
 end
