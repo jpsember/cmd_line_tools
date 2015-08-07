@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+
+require 'cmd_line_tools/filt'
+FiltApp.new.run
