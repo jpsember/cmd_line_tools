@@ -36,15 +36,17 @@ class FiltApp
   end
 
   def process_line(content,line_number)
-    tokenizer = Tokn::Tokenizer.new(@filter_dfa,content)
-    tokenizer.accept_unknown_tokens = true
     filter_line = false
-    while tokenizer.has_next
-      token = tokenizer.read
-      if !token.unknown?
-        filter_line = true
-        puts "...filtering line \##{1+line_number}, found '#{token.text}'" if @verbose
-        break
+    if !@filter_dfa.nil?
+      tokenizer = Tokn::Tokenizer.new(@filter_dfa,content)
+      tokenizer.accept_unknown_tokens = true
+      while tokenizer.has_next
+        token = tokenizer.read
+        if !token.unknown?
+          filter_line = true
+          puts "...filtering line \##{1+line_number}, found '#{token.text}'" if @verbose
+          break
+        end
       end
     end
     if filter_line
@@ -75,10 +77,13 @@ class FiltApp
   #
   def parse_logfilter_file
     path = logfilter_path()
-    die "Cannot find .logfilter file" if path.nil?
+    if path.nil?
+      puts "*** WARNING: filt cannot find expression file #{FILTER_FILENAME}"
+      return
+    end
 
     # Determine where to persist compiled file (to avoid unnecessary recompilation)
-    persist_path = path + ".persist"
+    persist_path = path + ".compiled_dfa"
     if File.exist?(persist_path) && File.mtime(persist_path) < File.mtime(path)
       File.delete(persist_path)
     end
