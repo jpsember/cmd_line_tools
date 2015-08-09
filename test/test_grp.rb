@@ -1,10 +1,9 @@
 #!/usr/bin/env ruby
 
-require 'js_base/test'
-
+require 'js_base/js_test'
 require 'cmd_line_tools/grp'
 
-class TestGrp <  Test::Unit::TestCase
+class TestGrp < JSTest
 
   def teardown
     FileUtils.rm('../grp_defaults.txt')
@@ -24,20 +23,18 @@ class TestGrp <  Test::Unit::TestCase
   end
 
   def test_txt
-    IORecorder.new('test_txt').perform do
+    TestSnapshot.new.perform do
       grp("s txt")
     end
   end
 
   def test_remember
-    IORecorder.new.perform do
+    TestSnapshot.new.perform do
       grp("s txt")
       puts "Running again, without arguments"
       grp("")
       puts "Running again, with just a new pattern"
       grp("t")
-      puts "Running again, forgetting"
-      grp("-f")
     end
   end
 

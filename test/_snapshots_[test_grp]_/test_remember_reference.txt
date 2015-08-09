@@ -38,19 +38,3 @@ Calling grp with args: 't'
 
 ./beta/alphabet_soup.txt
      1 | Another file beginning with 'alpha'
-Running again, forgetting
-
-
-Calling grp with args: '-f'
-
-
-Example:
-     grp velocity cpp h
-         Searches for all occurrences of 'velocity' in *.cpp, *.h recursively
-
-     grp
-         Repeats the last search
-     --pattern, -p <s>:   search pattern
-  --extensions, -e <s>:   filename extensions 'xxx/yyy/zzz...'
-          --forget, -f:   forget saved arguments
-            --help, -h:   Show this message

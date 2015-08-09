@@ -1,10 +1,9 @@
 #!/usr/bin/env ruby
 
-require 'js_base/test'
-
+require 'js_base/js_test'
 require 'cmd_line_tools/fnd'
 
-class TestFnd <  Test::Unit::TestCase
+class TestFnd < JSTest
 
   def setup
     enter_test_directory('sample_files/files')

@@ -1,9 +1,9 @@
 #!/usr/bin/env ruby
 
-require 'js_base/test'
+require 'js_base/js_test'
 require 'cmd_line_tools/makegem'
 
-class TestMakeGem <  Test::Unit::TestCase
+class TestMakeGem < JSTest
 
   def setup
     enter_test_directory

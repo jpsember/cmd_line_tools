@@ -1,10 +1,9 @@
 #!/usr/bin/env ruby
 
-require 'js_base/test'
-
+require 'js_base/js_test'
 require 'cmd_line_tools/mscr'
 
-class TestMScr <  Test::Unit::TestCase
+class TestMScr < JSTest
 
   def setup
     enter_test_directory

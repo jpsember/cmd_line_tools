@@ -18,6 +18,7 @@ class FiltApp
     p = Trollop::Parser.new do
       opt :verbose, "verbose operation"
       opt :markers, "indicate filtered lines with markers"
+      opt :input, "read from file instead of stdin", :type => :string
     end
 
     options = Trollop::with_standard_exception_handling p do
@@ -26,11 +27,18 @@ class FiltApp
 
     @verbose = options[:verbose]
     @markers = options[:markers]
+    @input = options[:input]
 
     parse_logfilter_file
 
-    ARGF.each_with_index do |line,line_number|
-      process_line(line,line_number)
+    if @input
+      FileUtils.read_text_file(@input).split("\n").each_with_index do |line,line_number|
+        process_line(line,line_number)
+      end
+    else
+      ARGF.each_with_index do |line,line_number|
+        process_line(line,line_number)
+      end
     end
     flush_filtered
   end
@@ -87,7 +95,22 @@ class FiltApp
     if File.exist?(persist_path) && File.mtime(persist_path) < File.mtime(path)
       File.delete(persist_path)
     end
-    @filter_dfa = Tokn::DFA.from_script(FileUtils.read_text_file(path),persist_path)
+    script = FileUtils.read_text_file(path)
+    script = precompile_token_script(script)
+    @filter_dfa = Tokn::DFA.from_script(script,persist_path)
+  end
+
+  # Precompile the token script, inserting (unused) token names
+  #
+  def precompile_token_script(script)
+    result = ''
+    token_index = 0
+    script.split("\n").each do |line|
+      line.rstrip!
+      next if line.start_with?('#')
+      result << "T#{token_index}: " << line
+    end
+    result
   end
 
   # Find .logfilter file, if possible, by searching from current directory upward
