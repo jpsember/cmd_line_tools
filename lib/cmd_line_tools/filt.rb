@@ -107,8 +107,10 @@ class FiltApp
     token_index = 0
     script.split("\n").each do |line|
       line.rstrip!
+      next if line.empty?
       next if line.start_with?('#')
-      result << "T#{token_index}: " << line
+      result << "T#{token_index}: " << line << "\n"
+      token_index += 1
     end
     result
   end
