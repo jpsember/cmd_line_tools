@@ -106,7 +106,7 @@ EOS
       cmd += " --include \"*.#{ext}\""
     end
     cmd += " -n"
-    cmd += " -e #{@expr}"
+    cmd += " -e \"#{@expr}\""
     cmd += " ."
     puts cmd if @verbose
 
