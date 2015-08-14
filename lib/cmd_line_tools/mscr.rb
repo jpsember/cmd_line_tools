@@ -3,7 +3,6 @@
 # Create a ruby script file
 
 require 'js_base'
-require 'js_base/pretty'
 require 'js_base/text_editor'
 
 class MScr
