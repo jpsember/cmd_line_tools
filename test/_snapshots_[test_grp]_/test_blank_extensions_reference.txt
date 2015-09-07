@@ -1,0 +1,23 @@
+
+
+Calling grp with args: 'white zebra.'
+
+
+./beta/zebra
+     1 | black and white stripes
+Running again, without arguments
+
+
+Calling grp with args: ''
+
+
+./beta/zebra
+     1 | black and white stripes
+Running again, with just a new pattern
+
+
+Calling grp with args: 'black'
+
+
+./beta/zebra
+     1 | black and white stripes

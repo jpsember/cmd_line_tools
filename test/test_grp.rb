@@ -38,5 +38,15 @@ class TestGrp < JSTest
     end
   end
 
+  def test_blank_extensions
+    TestSnapshot.new.perform do
+      grp("white zebra.")
+      puts "Running again, without arguments"
+      grp("")
+      puts "Running again, with just a new pattern"
+      grp("black")
+    end
+  end
+
 end
 

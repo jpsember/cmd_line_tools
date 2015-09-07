@@ -20,6 +20,8 @@ Example:
      grp
          Repeats the last search
 
+     grp build Rakefile.
+         Searches for all occurrences of 'build' in files named 'Rakefile'
 EOS
       opt :pattern,"search pattern",:type=>:string
       opt :extensions,"filename extensions 'xxx/yyy/zzz...'",:type=>:string
@@ -103,7 +105,12 @@ EOS
 
     cmd = "grep -ri"
     @extensions.each do |ext|
-      cmd += " --include \"*.#{ext}\""
+      if ext.end_with? '.'
+        prefix = ext[0...-1]
+        cmd += " --include \"#{prefix}\""
+      else
+        cmd += " --include \"*.#{ext}\""
+      end
     end
     cmd += " -n"
     cmd += " -e \"#{@expr}\""
