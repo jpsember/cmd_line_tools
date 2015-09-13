@@ -1,5 +1,0 @@
-#!/usr/bin/env ruby
-
-require 'cmd_line_tools/cleanxcode'
-
-CleanXCode.new.run(ARGV)

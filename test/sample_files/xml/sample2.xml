@@ -1,0 +1,12 @@
+<config bravo="44" alpha="99">
+  <server name="sahara" osname="solaris" osversion="2.6">
+    <address>10.0.0.101</address>
+    <address>10.0.1.101</address>
+  </server>
+  <server>
+    <osversion>6.5</osversion>
+    <address>10.0.0.102</address>
+    <osname>irix</osname>
+    <name>gobi</name>
+  </server>
+</config>

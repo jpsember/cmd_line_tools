@@ -54,15 +54,19 @@ class JsonToXmlApp
     XmlSimple.xml_out(hash)
   end
 
-  def process_source(source,options)
+  def locate_source(source,preferred_extension)
     ext = File.extname(source)
     if ext.length == 0
-      source = source + ".json"
+      source = FileUtils.add_extension(source,preferred_extension)
     end
     if !File.exist?(source)
       die("File '#{source}' not found")
     end
+    source
+  end
 
+  def process_source(source,options)
+    source = locate_source(source, options[:fromxml] ? 'xml' : 'json')
     input = File.read(source)
     if !options[:fromxml]
 
@@ -83,10 +87,10 @@ class JsonToXmlApp
         puts
       end
       if @output.nil?
-        target = change_extension(source,'xml')
+        target = FileUtils.change_extension(source,'xml')
       else
         target = @output
-        target = add_extension(target,'xml') if File.extname(target) == ''
+        target = FileUtils.add_extension(target,'xml') if File.extname(target) == ''
       end
       FileUtils.write_text_file(target,xml)
     else
@@ -98,10 +102,10 @@ class JsonToXmlApp
         puts
       end
       if @output.nil?
-        target = change_extension(source,'json')
+        target = FileUtils.change_extension(source,'json')
       else
         target = @output
-        target = add_extension(target,'json') if File.extname(target) == ''
+        target = FileUtils.add_extension(target,'json') if File.extname(target) == ''
       end
       FileUtils.write_text_file(target,JSON.pretty_generate(hash))
     end
