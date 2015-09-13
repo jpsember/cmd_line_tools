@@ -1,0 +1,22 @@
+// This is a json file with comments.
+{
+  "menu": {
+    "food": [
+      {
+        "name": "Waffles",
+        "price": "5.95"
+      },
+/*      {
+        "name": "Waffles",
+        "price": "5.95"
+      },
+      */
+
+      {
+        "name": "French Toast",
+        // "calories":800,
+        "price": "4.50"
+      }
+    ]
+  }
+}
