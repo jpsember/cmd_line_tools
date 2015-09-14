@@ -23,6 +23,7 @@ class JsonToXmlApp
       opt :fromxml, "convert xml -> json", :short => 'x'
       opt :output, "output file", :type => :string
       opt :dry_run, "don't write anything"
+      opt :suffix, "optional suffix to omit from output file", :type => :string
     end
 
     options = Trollop::with_standard_exception_handling p do
@@ -98,12 +99,7 @@ class JsonToXmlApp
         puts
       end
 
-      if @output.nil?
-        target = FileUtils.change_extension(source,'xml')
-      else
-        target = @output
-        target = FileUtils.add_extension(target,'xml') if File.extname(target) == ''
-      end
+      target = determine_output_path(source,@output,'xml')
       FileUtils.write_text_file(target,xml) unless @options[:dry_run]
 
     else
@@ -116,16 +112,26 @@ class JsonToXmlApp
         puts
       end
 
-      if @output.nil?
-        target = FileUtils.change_extension(source,'json')
-      else
-        target = @output
-        target = FileUtils.add_extension(target,'json') if File.extname(target) == ''
-      end
-      json_output = JSON.pretty_generate(hash)
+      target = determine_output_path(source,@output,'json')
+      json_output = JSON.pretty_generate(hash) + "\n"
       FileUtils.write_text_file(target,json_output) unless @options[:dry_run]
     end
 
+  end
+
+  def determine_output_path(source_path,user_provided_output,preferred_extension)
+    output = user_provided_output
+    if output.nil?
+      output = FileUtils.remove_extension(source_path)
+      suffix = @options[:suffix]
+      if suffix
+        if output.end_with? suffix
+          output[-suffix.length..-1] = ""
+        end
+      end
+      output = FileUtils.add_extension(output,preferred_extension)
+    end
+    output
   end
 
 
