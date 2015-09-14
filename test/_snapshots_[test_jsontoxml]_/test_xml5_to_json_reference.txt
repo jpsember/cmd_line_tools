@@ -1,0 +1,88 @@
+XmlSimple parsed as:
+{
+  "Configuration": [
+    {
+      "status": "trace",
+      "name": "production log4j2 configuration",
+      "Properties": [
+        {
+          "Property": [
+            {
+              "name": "Directory",
+              "?": "${sys:user.home}/pub/logs"
+            },
+            {
+              "name": "Filename",
+              "?": "!!APPNAME!!.log"
+            },
+            {
+              "name": "Filename",
+              "?": "alphabet"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+Parsed from XML:
+----------------------------------------------------
+{
+  "!": "Configuration",
+  "#": {
+    "status": "trace",
+    "name": "production log4j2 configuration"
+  },
+  "Properties": {
+    "Property": [
+      {
+        "#": {
+          "name": "Directory",
+          "?": "${sys:user.home}/pub/logs"
+        }
+      },
+      {
+        "#": {
+          "name": "Filename",
+          "?": "!!APPNAME!!.log"
+        }
+      },
+      {
+        "#": {
+          "name": "Filename",
+          "?": "alphabet"
+        }
+      }
+    ]
+  }
+}
+
+{
+  "!": "Configuration",
+  "#": {
+    "status": "trace",
+    "name": "production log4j2 configuration"
+  },
+  "Properties": {
+    "Property": [
+      {
+        "#": {
+          "name": "Directory",
+          "?": "${sys:user.home}/pub/logs"
+        }
+      },
+      {
+        "#": {
+          "name": "Filename",
+          "?": "!!APPNAME!!.log"
+        }
+      },
+      {
+        "#": {
+          "name": "Filename",
+          "?": "alphabet"
+        }
+      }
+    ]
+  }
+}

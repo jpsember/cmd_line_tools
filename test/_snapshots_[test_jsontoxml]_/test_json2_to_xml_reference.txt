@@ -1,0 +1,7 @@
+<Configuration status="trace" name="configuration">
+  <Properties>
+    <Property name="Directory">${sys:user.home}/pub/logs</Property>
+    <Property name="Filename">!!APPNAME!!.log</Property>
+    <Property name="Filename">alphabet</Property>
+  </Properties>
+</Configuration>

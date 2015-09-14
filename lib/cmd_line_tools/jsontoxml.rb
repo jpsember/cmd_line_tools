@@ -6,6 +6,8 @@ require 'xmlsimple'
 
 class JsonToXmlApp
 
+  CONTENT_KEY = '?'
+
   def run(argv)
 
     p = Trollop::Parser.new do
@@ -51,9 +53,10 @@ class JsonToXmlApp
   # Parse xml to Ruby hash
   #
   def parse_xml(text)
-    hash = XmlSimple.xml_in(text,'KeepRoot'=>true,'ContentKey'=>'?')
-    if hash.has_key?('?')
-      die "xml contains content section(s): #{hash['?']}"
+    hash = XmlSimple.xml_in(text,'KeepRoot'=>true,'ContentKey'=>CONTENT_KEY)
+    if @verbose
+      puts "XmlSimple parsed as:"
+      puts JSON.pretty_generate(hash)
     end
 
     hash2 = {}
@@ -186,7 +189,7 @@ class JsonToXmlApp
 
   def encode_xml(hash)
     hash = prepare_value_for_xml(hash)
-    XmlSimple.xml_out(hash,'KeepRoot'=>true)
+    XmlSimple.xml_out(hash,'KeepRoot'=>true,'ContentKey'=>CONTENT_KEY)
   end
 
   # Rewrite value to conform to what xml->json would have output with KeepRoot=true

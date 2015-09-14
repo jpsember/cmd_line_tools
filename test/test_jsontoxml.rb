@@ -20,6 +20,13 @@ class TestJsontoxml < JSTest
     end
   end
 
+  def test_json2_to_xml
+    TestSnapshot.new.perform do
+      JsonToXmlApp.new.run("../sample_files/json/sample2.json -o output.xml".split)
+      puts FileUtils.read_text_file("output.xml")
+    end
+  end
+
   # Haven't found a json parser that accepts both extra commas AND comments
   def OMIT_test_sloppy_json_to_xml
     TestSnapshot.new.perform do
@@ -45,6 +52,13 @@ class TestJsontoxml < JSTest
   def test_xml3_to_json
     TestSnapshot.new.perform() do
       JsonToXmlApp.new.run("../sample_files/xml/sample3.xml -o output.json -x".split)
+      puts FileUtils.read_text_file("output.json")
+    end
+  end
+
+  def test_xml5_to_json
+    TestSnapshot.new.perform() do
+      JsonToXmlApp.new.run("../sample_files/xml/sample5.xml -o output.json -x -v".split)
       puts FileUtils.read_text_file("output.json")
     end
   end
