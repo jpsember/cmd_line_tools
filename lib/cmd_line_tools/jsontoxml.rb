@@ -6,7 +6,6 @@ require 'xmlsimple'
 
 class JsonToXmlApp
 
-
   def run(argv)
 
     p = Trollop::Parser.new do
@@ -23,12 +22,14 @@ class JsonToXmlApp
       opt :verbose, "verbose", :short => 'v'
       opt :fromxml, "convert xml -> json", :short => 'x'
       opt :output, "output file", :type => :string
+      opt :dry_run, "don't write anything"
     end
 
     options = Trollop::with_standard_exception_handling p do
       p.parse argv
     end
 
+    @options = options
     @verbose = options[:verbose]
     @output = options[:output]
 
@@ -46,12 +47,20 @@ class JsonToXmlApp
     JSON.parse(text)
   end
 
+  # Parse xml to Ruby hash
+  #
   def parse_xml(text)
-    XmlSimple.xml_in(text)
-  end
+    hash = XmlSimple.xml_in(text,'KeepRoot'=>true,'ContentKey'=>'?')
+    if hash.has_key?('?')
+      die "xml contains content section(s): #{hash['?']}"
+    end
 
-  def encode_xml(hash)
-    XmlSimple.xml_out(hash)
+    hash2 = {}
+    hash.each do |key,inner_list|
+      hash2 = inner_list[0]
+      hash2['!'] = key
+    end
+    rewrite_value_from_xml(hash2)
   end
 
   def locate_source(source,preferred_extension)
@@ -68,6 +77,7 @@ class JsonToXmlApp
   def process_source(source,options)
     source = locate_source(source, options[:fromxml] ? 'xml' : 'json')
     input = File.read(source)
+
     if !options[:fromxml]
 
       hash = parse_json(input)
@@ -78,6 +88,7 @@ class JsonToXmlApp
         puts JSON.pretty_generate(hash)
         puts
       end
+
       xml = encode_xml(hash)
 
       if @verbose
@@ -86,14 +97,17 @@ class JsonToXmlApp
         puts xml
         puts
       end
+
       if @output.nil?
         target = FileUtils.change_extension(source,'xml')
       else
         target = @output
         target = FileUtils.add_extension(target,'xml') if File.extname(target) == ''
       end
-      FileUtils.write_text_file(target,xml)
+      FileUtils.write_text_file(target,xml) unless @options[:dry_run]
+
     else
+
       hash = parse_xml(input)
       if @verbose
         puts "Parsed from XML:"
@@ -101,17 +115,113 @@ class JsonToXmlApp
         puts JSON.pretty_generate(hash)
         puts
       end
+
       if @output.nil?
         target = FileUtils.change_extension(source,'json')
       else
         target = @output
         target = FileUtils.add_extension(target,'json') if File.extname(target) == ''
       end
-      FileUtils.write_text_file(target,JSON.pretty_generate(hash))
+      json_output = JSON.pretty_generate(hash)
+      FileUtils.write_text_file(target,json_output) unless @options[:dry_run]
     end
 
   end
 
+
+  # Rewrite a hash parsed from xml by XmlSimple.
+  #
+  # Each element has these changes made:
+  #
+  # 1) remove superfluous lists around values:  "key" : [ <value> ]   ===>  "key" : <value>
+  # 2) put element's attributes in a map, keyed by '#'
+  # 3) put root element's NAME as '!' : "NAME"
+  # 4) if there are multiple children with the same name, place them in a list
+  #
+  def rewrite_value_from_xml(topmost_value)
+    if topmost_value.is_a? Array
+      array = []
+      topmost_value.each do |elem|
+        array << rewrite_value_from_xml(elem)
+      end
+      return array
+    elsif !topmost_value.is_a? Hash
+      return topmost_value
+    end
+
+
+    out = {}
+
+    attributes = {}
+    key_pairs = []
+    topmost_value.each do |key,value|
+      if key == '!'
+        out[key] = value
+      elsif value.is_a? Array
+        if value.length > 1
+          # Preserve value as an array (but convert its elements)
+          key_pairs << [key,rewrite_value_from_xml(value)]
+        else
+          # Convert [x] to x'
+          key_pairs << [key,rewrite_value_from_xml(value[0])]
+        end
+      else
+        attributes[key] = rewrite_value_from_xml(value)
+      end
+    end
+    if !attributes.empty?
+      out['#'] = attributes
+    end
+    key_pairs.each do |key,value|
+      out[key] = value
+    end
+    out
+  end
+
+  def encode_xml(hash)
+    hash = prepare_value_for_xml(hash)
+    XmlSimple.xml_out(hash,'KeepRoot'=>true)
+  end
+
+  # Rewrite value to conform to what xml->json would have output with KeepRoot=true
+  #
+  def prepare_value_for_xml(root_value, top_level = true)
+    if root_value.is_a? Hash
+      root_element_name = nil
+      out_hash = {}
+      root_value.each do |key,value|
+        if key == '#'
+          value.each do |attrkey,attrvalue|
+            out_hash[attrkey] = attrvalue
+          end
+        elsif top_level && key == '!'
+          root_element_name = value
+        else
+          value2 = prepare_value_for_xml(value, false)
+          if !value2.is_a? Array
+            value2 = [value2]
+          end
+          out_hash[key] = value2
+        end
+      end
+      if top_level
+        outer_hash = {}
+        root_element_name ||= 'UNKNOWN_ROOT_ELEMENT'
+        outer_hash[root_element_name] = [ out_hash ]
+        return outer_hash
+      else
+        return out_hash
+      end
+    end
+    if root_value.is_a? Array
+      list = []
+      root_value.each do |value|
+        list << prepare_value_for_xml(value,false)
+      end
+      return list
+    end
+    return root_value
+  end
 end
 
 if __FILE__ == $0

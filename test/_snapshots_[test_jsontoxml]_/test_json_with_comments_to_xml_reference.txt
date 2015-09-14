@@ -1,6 +1,10 @@
-<opt>
-  <menu>
-    <food name="Waffles" price="5.95" />
-    <food name="French Toast" price="4.50" />
-  </menu>
-</opt>
+<menu>
+  <food>
+    <name>Waffles</name>
+    <price>5.95</price>
+  </food>
+  <food>
+    <name>French Toast</name>
+    <price>4.50</price>
+  </food>
+</menu>

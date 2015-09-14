@@ -36,11 +36,17 @@ class TestJsontoxml < JSTest
   end
 
   def test_xml_to_json
-    TestSnapshot.new.perform do
+    TestSnapshot.new.perform() do
       JsonToXmlApp.new.run("../sample_files/xml/sample.xml -o output.json -x".split)
       puts FileUtils.read_text_file("output.json")
     end
   end
 
+  def test_xml3_to_json
+    TestSnapshot.new.perform() do
+      JsonToXmlApp.new.run("../sample_files/xml/sample3.xml -o output.json -x".split)
+      puts FileUtils.read_text_file("output.json")
+    end
+  end
 
 end

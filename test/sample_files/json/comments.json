@@ -1,6 +1,5 @@
 // This is a json file with comments.
-{
-  "menu": {
+{  "!":"menu",
     "food": [
       {
         "name": "Waffles",
@@ -19,4 +18,3 @@
       }
     ]
   }
-}

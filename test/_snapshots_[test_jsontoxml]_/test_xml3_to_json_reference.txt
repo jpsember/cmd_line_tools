@@ -1,0 +1,21 @@
+{
+  "!": "root",
+  "child": {
+    "#": {
+      "childattr": "bk101"
+    },
+    "grandchild": {
+      "#": {
+        "alpha": "aa",
+        "?": "\n      "
+      }
+    },
+    "childattr2": {
+    },
+    "content": "ddd"
+  },
+  "?": [
+    "\n  This is some text that will be lost when\n  this is converted to json.\n   ",
+    "\n  This is more text that will be lost.\n"
+  ]
+}

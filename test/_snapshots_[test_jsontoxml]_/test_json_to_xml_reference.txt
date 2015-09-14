@@ -1,6 +1,12 @@
-<opt>
+<name_of_toplevel_element a="alpha" b="bravo" c="charlie">
   <menu>
-    <food name="Waffles" price="5.95" />
-    <food name="French Toast" price="4.50" />
+    <food>
+      <name>Waffles</name>
+      <price>5.95</price>
+    </food>
+    <food>
+      <name>French Toast</name>
+      <price>4.50</price>
+    </food>
   </menu>
-</opt>
+</name_of_toplevel_element>

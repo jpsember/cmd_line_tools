@@ -1,6 +1,0 @@
-<opt>
-  <menu>
-    <food name="Waffles" price="5.95" />
-    <food name="French Toast" price="4.50" />
-  </menu>
-</opt>

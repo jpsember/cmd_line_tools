@@ -1,4 +1,9 @@
 {
+  "!":"name_of_toplevel_element",
+
+
+  "#":{"a":"alpha","b":"bravo","c":"charlie"},
+
   "menu": {
     "food": [
       {

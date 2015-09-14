@@ -1,0 +1,7 @@
+<root attr=''>
+  <childwattr baz='foo'>
+    <zebra>horse</zebra>
+  </childwattr>
+  <emptychild/>
+  <emptychild2></emptychild2>
+</root>

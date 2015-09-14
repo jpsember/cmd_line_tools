@@ -1,0 +1,10 @@
+<root>
+  This is some text that will be lost when
+  this is converted to json.
+   <child childattr="bk101">
+      <grandchild alpha="aa">
+      </grandchild>
+      <childattr2/>
+      <content>ddd</content> </child>
+  This is more text that will be lost.
+</root>
