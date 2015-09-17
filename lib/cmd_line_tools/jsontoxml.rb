@@ -3,10 +3,27 @@
 require 'js_base'
 require 'json'
 require 'xmlsimple'
+require 'tokn'
 
 class JsonToXmlApp
 
   CONTENT_KEY = '?'
+  @dfa = nil
+  @cursor = nil
+  @filtered_tokens = nil
+
+  WS = 0
+  COMMA = 1
+  COLON = 2
+  LISTOPEN = 3
+  LISTCLOSE = 4
+  MAPOPEN = 5
+  MAPCLOSE = 6
+  ID = 7
+  FLOAT = 8
+  STRING = 9
+  BOOLEAN = 10
+  NULL = 11
 
   def run(argv)
 
@@ -26,6 +43,9 @@ class JsonToXmlApp
       opt :output, "output file", :type => :string
       opt :dry_run, "don't write anything"
       opt :suffix, "suffix expected on json file", :default => "_toxml"
+      opt :noclean, "don't clean up json"
+      opt :cleanonly, "do json clean only"
+      opt :dump_tokens, "dump json tokens"
     end
 
     options = Trollop::with_standard_exception_handling p do
@@ -73,6 +93,7 @@ class JsonToXmlApp
     if ext.length != 0
       basename = FileUtils.remove_extension(source)
     end
+    orig_basename = basename
 
     suffix = @options[:suffix]
     if !@options[:fromxml]
@@ -87,7 +108,12 @@ class JsonToXmlApp
 
     source = basename + '.' + preferred_extension
     if !File.exist?(source)
-      die("File '#{source}' not found")
+      source2 = orig_basename + '.' + preferred_extension
+      if File.exist?(source2)
+        source = source2
+      else
+        die("File '#{source}' not found")
+      end
     end
     source
   end
@@ -97,6 +123,18 @@ class JsonToXmlApp
     input = File.read(source)
 
     if !@options[:fromxml]
+
+      if !@options[:noclean]
+        cleaned_input = clean_json_source(input)
+        if cleaned_input != input
+          puts "...writing cleaned json to #{source}:\n#{cleaned_input}\n" if @verbose
+          if !@options[:dry_run]
+            FileUtils.write_text_file(source+"_cleaned",cleaned_input)
+          end
+          input = cleaned_input
+        end
+      end
+      return if @options[:cleanonly]
 
       hash = parse_json(input)
 
@@ -249,6 +287,220 @@ class JsonToXmlApp
     end
     return root_value
   end
+
+  def clean_json_source(json_source)
+    @filtered_tokens = tokenize_json_source(json_source)
+
+    if @options[:dump_tokens]
+      @filtered_tokens.each do |tok|
+        t = tok.token
+        s = "(line #{t.lineNumber}, col #{t.column})"
+        s = s.ljust(19)
+        s << @dfa.token_name(tok.id)
+        s = s.ljust(28) << ': ' << t.text
+        puts s
+      end
+    end
+
+    @cursor = 0
+    parse_value
+
+    text = ""
+    link = @filtered_tokens[0]
+    while link
+      text << link.token.text
+      link = link.next_link
+    end
+    text
+  end
+
+  def parse_value
+    if @cursor >= @filtered_tokens.length
+      raise_exception("unexpected end of input")
+    end
+    t = @filtered_tokens[@cursor]
+    if t.id == MAPOPEN
+      parse_map
+    elsif t.id == LISTOPEN
+      parse_list
+    elsif t.id == FLOAT || t.id == STRING || t.id == BOOLEAN || t.id == NULL
+      read
+    elsif t.id == ID
+      t.add_quotes
+      read
+    else
+      raise_exception("unexpected token",t)
+    end
+  end
+
+  def parse_string
+    t = read
+    if t.id == ID
+      t.add_quotes
+    else
+      if t.id != STRING
+        raise_exception("unexpected token",t)
+      end
+    end
+  end
+
+  def parse_map
+    read(MAPOPEN)
+    while true
+      if peek(MAPCLOSE)
+        read
+        break
+      end
+      parse_string
+      read(COLON)
+      parse_value
+      if peek(COMMA)
+        t = read
+        if peek(MAPCLOSE)
+          t.remove_from_linked_list
+          read
+          break
+        end
+      else
+        read(MAPCLOSE)
+        break
+      end
+    end
+  end
+
+  def parse_list
+    read(LISTOPEN)
+    while true
+      if peek(LISTCLOSE)
+        read
+        break
+      end
+      parse_value
+      if peek(COMMA)
+        t = read
+        if peek(LISTCLOSE)
+          t.remove_from_linked_list
+          read
+          break
+        end
+      else
+        read(LISTCLOSE)
+        break
+      end
+    end
+  end
+
+  def peek(match_id = nil)
+    if @cursor == @filtered_tokens.length
+      p = LinkedToken.eof
+    else
+      p = @filtered_tokens[@cursor]
+    end
+    if match_id.nil?
+      p
+    else
+      p.id == match_id
+    end
+  end
+
+  def raise_exception(message,linked_token = nil)
+    if linked_token
+      t = linked_token.token
+      message << " (#{t.lineNumber},#{t.column})"
+    end
+    raise Tokn::TokenizerException, message
+  end
+
+  def read(exp = nil)
+    ret = peek
+    if ret.eof?
+      raise_exception("Unexpected end of input")
+    end
+    if exp && exp != ret.id
+      raise_exception("Unexpected token",ret)
+    end
+    @cursor += 1
+    ret
+  end
+
+  # Tokenize json source into a linked list of LinkedTokens (preserving whitespace), and
+  # store the non-whitespace tokens in a list for parsing
+  #
+  def tokenize_json_source(json_source)
+    filtered = []
+    prev_token = nil
+    tokenizer = Tokn::Tokenizer.new(dfa,json_source)
+    while tokenizer.has_next
+      token = tokenizer.read
+      linked_token = LinkedToken.new(token,prev_token)
+      if token.id > 0
+        filtered << linked_token
+      end
+      prev_token = linked_token
+    end
+    filtered
+  end
+
+  def dfa
+    if @dfa.nil?
+      @dfa = Tokn::DFA.from_file('lib/cmd_line_tools/json_tokens.dfa')
+    end
+    @dfa
+  end
+
+  class LinkedToken
+
+    attr_accessor :prev_link, :next_link
+    attr_accessor :token
+
+    def initialize(token, prev=nil)
+      self.token = token
+      self.prev_link = prev
+      if prev
+        follow = prev.next_link
+        prev.next_link = self
+        self.next_link = follow
+        if follow
+          follow.prev_link = prev
+        end
+      end
+      @prev = nil
+      @next = nil
+    end
+
+    @@eof_token = Tokn::Token.new(-1,nil,-1,-1)
+    @@eof = LinkedToken.new(@@eof_token)
+
+     def self.eof
+      @@eof
+    end
+
+    def id
+      self.token.id
+    end
+
+    def eof?
+      self.token == @@eof_token
+    end
+
+    def remove_from_linked_list
+      p = self.prev_link
+      n = self.next_link
+      if p
+        p.next_link = n
+      end
+      if n
+        n.prev_link = p
+      end
+    end
+
+    def add_quotes
+      tk = self.token
+      self.token = Tokn::Token.new(STRING,"\"#{tk.text}\"",tk.lineNumber,tk.column)
+    end
+
+  end
+
 end
 
 if __FILE__ == $0

@@ -1,0 +1,29 @@
+{
+  "!": Configuration,
+  "#": {
+    "status": "trace",
+    "name": "configuration"
+  },
+  "Properties": {
+    "Property": [
+      {
+        "#": {
+          "name": "Directory",
+          "?": "${sys:user.home}/pub/logs"
+        }
+      },
+      {
+        "#": {
+          "name": "Filename",
+          "?": "!!APPNAME!!.log"
+        }
+      },
+      {
+        "#": {
+          "name": "Filename",
+          "?": "alphabet"
+        }
+      }
+    ]
+  }
+}
