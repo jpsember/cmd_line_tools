@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+
+require 'cmd_line_tools/mkres'
+
+MkResApp.new.run(ARGV)
+

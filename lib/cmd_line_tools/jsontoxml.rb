@@ -15,17 +15,17 @@ class JsonToXmlApp
 
       Example:
         jsontoxml alpha
-      Converts file "alpha.json" to "alpha.xml"
+      Converts file "alpha_toxml.json" to "alpha.xml"
 
       jsontoxml -x alpha
-      Converts file "alpha.xml" to "alpha.json"
+      Converts file "alpha.xml" to "alpha_toxml.json"
 
       EOS
       opt :verbose, "verbose", :short => 'v'
       opt :fromxml, "convert xml -> json", :short => 'x'
       opt :output, "output file", :type => :string
       opt :dry_run, "don't write anything"
-      opt :suffix, "optional suffix to omit from output file", :type => :string
+      opt :suffix, "suffix expected on json file", :default => "_toxml"
     end
 
     options = Trollop::with_standard_exception_handling p do
@@ -42,7 +42,7 @@ class JsonToXmlApp
     end
 
     p.leftovers.each do |source|
-      process_source(source,options)
+      process_source(source)
     end
   end
 
@@ -68,21 +68,35 @@ class JsonToXmlApp
   end
 
   def locate_source(source,preferred_extension)
+    basename = source
     ext = File.extname(source)
-    if ext.length == 0
-      source = FileUtils.add_extension(source,preferred_extension)
+    if ext.length != 0
+      basename = FileUtils.remove_extension(source)
     end
+
+    suffix = @options[:suffix]
+    if !@options[:fromxml]
+      if !basename.end_with? suffix
+        basename = basename + suffix
+      end
+    else
+      if basename.end_with? suffix
+        basename[-suffix.length..-1] = ''
+      end
+    end
+
+    source = basename + '.' + preferred_extension
     if !File.exist?(source)
       die("File '#{source}' not found")
     end
     source
   end
 
-  def process_source(source,options)
-    source = locate_source(source, options[:fromxml] ? 'xml' : 'json')
+  def process_source(source)
+    source = locate_source(source, @options[:fromxml] ? 'xml' : 'json')
     input = File.read(source)
 
-    if !options[:fromxml]
+    if !@options[:fromxml]
 
       hash = parse_json(input)
 
@@ -128,8 +142,12 @@ class JsonToXmlApp
       output = FileUtils.remove_extension(source_path)
       suffix = @options[:suffix]
       if suffix
-        if output.end_with? suffix
-          output[-suffix.length..-1] = ""
+        if preferred_extension=='xml'
+          if output.end_with? suffix
+            output[-suffix.length..-1] = ""
+          end
+        else
+          output = output + suffix
         end
       end
       output = FileUtils.add_extension(output,preferred_extension)
