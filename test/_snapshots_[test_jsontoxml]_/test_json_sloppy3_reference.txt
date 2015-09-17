@@ -1,4 +1,4 @@
-...writing cleaned 3.json:
+...writing cleaned 3_toxml.json:
 ["alpha","bravo",/*
 
 here is a comment */"charlie"]

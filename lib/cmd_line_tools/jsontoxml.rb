@@ -71,34 +71,40 @@ class JsonToXmlApp
   end
 
   def locate_source(source,preferred_extension)
+    # Look for files in this order:
+    #
+    # 1) source
+    # 2) source + (suffix added or removed) + preferred_extension
+    # 3) source + preferred_extension
+    #
+    f = source
+    return f if File.exist?(f)
+
     basename = source
     ext = File.extname(source)
     if ext.length != 0
       basename = FileUtils.remove_extension(source)
     end
-    orig_basename = basename
 
+    augmented_basename = basename
     suffix = @options[:suffix]
     if !@options[:fromxml]
       if !basename.end_with? suffix
-        basename = basename + suffix
+        augmented_basename = basename + suffix
       end
     else
       if basename.end_with? suffix
-        basename[-suffix.length..-1] = ''
+        augmented_basename[-suffix.length..-1] = ''
       end
     end
 
-    source = basename + '.' + preferred_extension
-    if !File.exist?(source)
-      source2 = orig_basename + '.' + preferred_extension
-      if File.exist?(source2)
-        source = source2
-      else
-        die("File '#{source}' not found")
-      end
-    end
-    source
+    f = augmented_basename + '.' + preferred_extension
+    return f if File.exist?(f)
+
+    f = basename + '.' + preferred_extension
+    return f if File.exist?(f)
+
+    die("File '#{source}' not found")
   end
 
   def process_source(source)

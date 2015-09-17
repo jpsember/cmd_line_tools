@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
                       '[A-Z]*',
                       'test/**/*',
                       ]
-  s.executables << 'fnd' << 'grp' << 'mscr' << 'makegem' << 'pdoc' << 'filt' << 'jsontoxml' << 'mkres'
+  s.executables << 'fnd' << 'grp' << 'mscr' << 'makegem' << 'pdoc' << 'filt' << 'jsontoxml' << 'mkres' << 'cleanjson'
   s.add_runtime_dependency 'trollop'
   s.add_runtime_dependency 'js_base', '>= 1.1.0'
   s.add_runtime_dependency 'tokn', '>= 2.0.0'

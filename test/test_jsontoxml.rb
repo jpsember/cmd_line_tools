@@ -27,14 +27,6 @@ class TestJsontoxml < JSTest
     end
   end
 
-  # Haven't found a json parser that accepts both extra commas AND comments
-  def OMIT_test_sloppy_json_to_xml
-    TestSnapshot.new.perform do
-      JsonToXmlApp.new.run("../sample_files/json/sample_extra_commas.json -o output.xml".split)
-      puts FileUtils.read_text_file("output.xml")
-    end
-  end
-
   def test_json_with_comments_to_xml
     TestSnapshot.new.perform do
       JsonToXmlApp.new.run("../sample_files/json/comments.json -o output.xml".split)
@@ -80,8 +72,27 @@ class TestJsontoxml < JSTest
   end
 
   def test_json_sloppy3
-    process_sloppy("3.json")
+    process_sloppy("3_toxml.json")
   end
 
+  def test_locate_source_from_xml
+    JsonToXmlApp.new.run("../sample_files/xml/sample5 -x -d".split)
+  end
+
+  def test_locate_source_to_xml
+    JsonToXmlApp.new.run("../sample_files/json_sloppy/2 -d".split)
+  end
+  def test_locate_source_to_xml_2
+    JsonToXmlApp.new.run("../sample_files/json_sloppy/3 -d".split)
+  end
+  def test_locate_source_to_xml_3
+    JsonToXmlApp.new.run("../sample_files/json_sloppy/3_toxml -d".split)
+  end
+  def test_locate_source_to_xml_4
+    JsonToXmlApp.new.run("../sample_files/json_sloppy/3.json -d".split)
+  end
+  def test_locate_source_to_xml_5
+    JsonToXmlApp.new.run("../sample_files/json_sloppy/3_toxml.json -d".split)
+  end
 
 end
