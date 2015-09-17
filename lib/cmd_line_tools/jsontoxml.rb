@@ -8,22 +8,6 @@ require 'tokn'
 class JsonToXmlApp
 
   CONTENT_KEY = '?'
-  @dfa = nil
-  @cursor = nil
-  @filtered_tokens = nil
-
-  WS = 0
-  COMMA = 1
-  COLON = 2
-  LISTOPEN = 3
-  LISTCLOSE = 4
-  MAPOPEN = 5
-  MAPCLOSE = 6
-  ID = 7
-  FLOAT = 8
-  STRING = 9
-  BOOLEAN = 10
-  NULL = 11
 
   def run(argv)
 
@@ -45,7 +29,6 @@ class JsonToXmlApp
       opt :suffix, "suffix expected on json file", :default => "_toxml"
       opt :noclean, "don't clean up json"
       opt :cleanonly, "do json clean only"
-      opt :dump_tokens, "dump json tokens"
     end
 
     options = Trollop::with_standard_exception_handling p do
@@ -127,9 +110,9 @@ class JsonToXmlApp
       if !@options[:noclean]
         cleaned_input = clean_json_source(input)
         if cleaned_input != input
-          puts "...writing cleaned json to #{source}:\n#{cleaned_input}\n" if @verbose
+          puts "...writing cleaned #{source}:\n#{cleaned_input}\n" if @verbose
           if !@options[:dry_run]
-            FileUtils.write_text_file(source+"_cleaned",cleaned_input)
+            FileUtils.write_text_file(source,cleaned_input)
           end
           input = cleaned_input
         end
@@ -290,35 +273,37 @@ class JsonToXmlApp
 
   def clean_json_source(json_source)
     @filtered_tokens = tokenize_json_source(json_source)
-
-    if @options[:dump_tokens]
-      @filtered_tokens.each do |tok|
-        t = tok.token
-        s = "(line #{t.lineNumber}, col #{t.column})"
-        s = s.ljust(19)
-        s << @dfa.token_name(tok.id)
-        s = s.ljust(28) << ': ' << t.text
-        puts s
-      end
-    end
-
     @cursor = 0
+    @cleaned_tokens = []
+
     parse_value
 
     text = ""
-    link = @filtered_tokens[0]
-    while link
-      text << link.token.text
-      link = link.next_link
+    @cleaned_tokens.each do |t|
+      text << t.text
     end
     text
   end
 
+  @dfa = nil
+  @cursor = nil
+  @filtered_tokens = nil
+
+  WS = 0
+  COMMA = 1
+  COLON = 2
+  LISTOPEN = 3
+  LISTCLOSE = 4
+  MAPOPEN = 5
+  MAPCLOSE = 6
+  ID = 7
+  FLOAT = 8
+  STRING = 9
+  BOOLEAN = 10
+  NULL = 11
+
   def parse_value
-    if @cursor >= @filtered_tokens.length
-      raise_exception("unexpected end of input")
-    end
-    t = @filtered_tokens[@cursor]
+    t = peek()
     if t.id == MAPOPEN
       parse_map
     elsif t.id == LISTOPEN
@@ -326,8 +311,8 @@ class JsonToXmlApp
     elsif t.id == FLOAT || t.id == STRING || t.id == BOOLEAN || t.id == NULL
       read
     elsif t.id == ID
-      t.add_quotes
       read
+      add_quotes_to_last
     else
       raise_exception("unexpected token",t)
     end
@@ -336,7 +321,7 @@ class JsonToXmlApp
   def parse_string
     t = read
     if t.id == ID
-      t.add_quotes
+      add_quotes_to_last
     else
       if t.id != STRING
         raise_exception("unexpected token",t)
@@ -357,7 +342,7 @@ class JsonToXmlApp
       if peek(COMMA)
         t = read
         if peek(MAPCLOSE)
-          t.remove_from_linked_list
+          remove_last_cleaned
           read
           break
         end
@@ -379,7 +364,7 @@ class JsonToXmlApp
       if peek(COMMA)
         t = read
         if peek(LISTCLOSE)
-          t.remove_from_linked_list
+          remove_last_cleaned
           read
           break
         end
@@ -390,119 +375,105 @@ class JsonToXmlApp
     end
   end
 
+  def add_cleaned(token)
+    @cleaned_tokens << token
+  end
+
+  def pop_to_non_whitespace
+    stack = []
+    while true
+      token = @cleaned_tokens.pop
+      stack << token
+      break if token.id != WS
+    end
+    stack
+  end
+
+  def push_stacked_tokens(stack)
+    while !stack.empty?
+      @cleaned_tokens << stack.pop
+    end
+  end
+
+  def remove_last_cleaned
+    stack = pop_to_non_whitespace
+    stack.pop
+    push_stacked_tokens(stack)
+  end
+
+  def add_quotes_to_last
+    stack = pop_to_non_whitespace
+    t = stack.pop
+    t = Tokn::Token.new(STRING,"\"#{t.text}\"",t.lineNumber,t.column)
+    stack << t
+    push_stacked_tokens(stack)
+  end
+
   def peek(match_id = nil)
-    if @cursor == @filtered_tokens.length
-      p = LinkedToken.eof
-    else
+    while @cursor < @filtered_tokens.length
+      token = @filtered_tokens[@cursor]
+      break if @filtered_tokens[@cursor].id != WS
+      add_cleaned(token)
+      @cursor += 1
+    end
+
+    p = nil
+    if @cursor < @filtered_tokens.length
       p = @filtered_tokens[@cursor]
     end
+
     if match_id.nil?
       p
     else
+      read if p.nil? # Generate end of input exception
       p.id == match_id
     end
   end
 
-  def raise_exception(message,linked_token = nil)
-    if linked_token
-      t = linked_token.token
-      message << " (#{t.lineNumber},#{t.column})"
+  def raise_exception(message,token = nil)
+    if token
+      message << " (#{token.lineNumber},#{token.column})"
     end
     raise Tokn::TokenizerException, message
   end
 
   def read(exp = nil)
-    ret = peek
-    if ret.eof?
+    token = peek
+    if token.nil?
       raise_exception("Unexpected end of input")
     end
-    if exp && exp != ret.id
+    if exp && exp != token.id
       raise_exception("Unexpected token",ret)
     end
+    add_cleaned(token)
     @cursor += 1
-    ret
+    token
   end
 
-  # Tokenize json source into a linked list of LinkedTokens (preserving whitespace), and
-  # store the non-whitespace tokens in a list for parsing
-  #
   def tokenize_json_source(json_source)
     filtered = []
-    prev_token = nil
     tokenizer = Tokn::Tokenizer.new(dfa,json_source)
     while tokenizer.has_next
-      token = tokenizer.read
-      linked_token = LinkedToken.new(token,prev_token)
-      if token.id > 0
-        filtered << linked_token
-      end
-      prev_token = linked_token
+      filtered << tokenizer.read
     end
     filtered
   end
 
   def dfa
     if @dfa.nil?
-      @dfa = Tokn::DFA.from_file('lib/cmd_line_tools/json_tokens.dfa')
+      dfa_file = File.join(File.dirname(File.expand_path(__FILE__)),'json_tokens.dfa')
+      @dfa = Tokn::DFA.from_file(dfa_file)
     end
     @dfa
   end
 
-  class LinkedToken
-
-    attr_accessor :prev_link, :next_link
-    attr_accessor :token
-
-    def initialize(token, prev=nil)
-      self.token = token
-      self.prev_link = prev
-      if prev
-        follow = prev.next_link
-        prev.next_link = self
-        self.next_link = follow
-        if follow
-          follow.prev_link = prev
-        end
-      end
-      @prev = nil
-      @next = nil
-    end
-
-    @@eof_token = Tokn::Token.new(-1,nil,-1,-1)
-    @@eof = LinkedToken.new(@@eof_token)
-
-     def self.eof
-      @@eof
-    end
-
-    def id
-      self.token.id
-    end
-
-    def eof?
-      self.token == @@eof_token
-    end
-
-    def remove_from_linked_list
-      p = self.prev_link
-      n = self.next_link
-      if p
-        p.next_link = n
-      end
-      if n
-        n.prev_link = p
-      end
-    end
-
-    def add_quotes
-      tk = self.token
-      self.token = Tokn::Token.new(STRING,"\"#{tk.text}\"",tk.lineNumber,tk.column)
-    end
-
-  end
-
 end
 
+
 if __FILE__ == $0
-  JsonToXmlApp.new.run(ARGV)
+  begin
+    JsonToXmlApp.new.run(ARGV)
+  rescue Exception => e
+    abort("Problem with jsontoxml: "+e.message)
+  end
 end

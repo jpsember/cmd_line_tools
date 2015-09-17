@@ -1,3 +1,4 @@
+...writing cleaned 1.json:
 {
   "!": "Configuration",
   "#": {

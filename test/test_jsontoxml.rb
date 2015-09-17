@@ -63,4 +63,25 @@ class TestJsontoxml < JSTest
     end
   end
 
+  def process_sloppy(basename)
+    TestSnapshot.new.perform() do
+      path = "../sample_files/json_sloppy/#{basename}"
+      FileUtils.copy(path,".")
+      JsonToXmlApp.new.run("#{basename} -c -v".split)
+    end
+  end
+
+  def test_json_sloppy1
+    process_sloppy("1.json")
+  end
+
+  def test_json_sloppy2
+    process_sloppy("2.json")
+  end
+
+  def test_json_sloppy3
+    process_sloppy("3.json")
+  end
+
+
 end

@@ -8,6 +8,7 @@ Gem::Specification.new do |s|
   s.authors     = ["Jeff Sember"]
   s.email       = 'jpsember@gmail.com'
   s.files = FileList['lib/**/*.rb',
+                      'lib/**/*.dfa',
                       'bin/*',
                       '[A-Z]*',
                       'test/**/*',

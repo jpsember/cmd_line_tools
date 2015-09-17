@@ -1,0 +1,2 @@
+...writing cleaned 2.json:
+[1,0.32e-3,3]

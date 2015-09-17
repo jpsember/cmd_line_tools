@@ -1,0 +1,4 @@
+...writing cleaned 3.json:
+["alpha","bravo",/*
+
+here is a comment */"charlie"]
