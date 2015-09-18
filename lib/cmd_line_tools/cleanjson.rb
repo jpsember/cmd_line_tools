@@ -233,14 +233,14 @@ MAPOPEN: \{
 MAPCLOSE: \}
 ID:   \w[\w\d]*
 FLOAT: [\+\-]?  (\d*\.\d+([eE][\+\-]?\d+)?|\d+)
-STRING: " ( [\x00-\x7f^\"\\] | \\[\x00-\x7f]  )* "
+STRING: " ( [^\x00-\x1f"\\] | \\["\\/bfnrt] | \\u[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F]  )* "
 BOOLEAN: (true|false)
 NULL: null
 EOS
 
   def dfa
     if @@dfa.nil?
-      @@dfa = Tokn::DFA.from_script(DFA_SCRIPT,File.join(Dir.home,'.cleanjson_dfa'))
+      @@dfa = Tokn::DFA.from_script(DFA_SCRIPT,File.join(Dir.home,'.cleanjson_dfa_1'))
     end
     @@dfa
   end

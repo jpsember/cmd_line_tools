@@ -2,6 +2,7 @@
 
 require 'js_base/js_test'
 require 'cmd_line_tools/jsontoxml'
+require 'cmd_line_tools/cleanjsonapp'
 
 class TestJsontoxml < JSTest
 
@@ -97,6 +98,35 @@ class TestJsontoxml < JSTest
   end
   def test_locate_source_to_xml_5
     JsonToXmlApp.new.run("../sample_files/json_sloppy/3_toxml.json -d".split)
+  end
+
+  def test_json_string_tokenizer
+    [
+      # Legal json strings
+
+      '','abcd','\uABCD','\\/',
+
+      # Illegal json strings
+
+      '!\uabc',"!\\\u001f",'!\\',
+
+    ].each do |str|
+      legal = true
+      if str.start_with? '!'
+        legal = false
+        str = str[1..-1]
+      end
+      json_expr = "[\"#{str}\"]"
+      succeeded = false
+      begin
+        path = '_expr_.json'
+        FileUtils.write_text_file(path,json_expr)
+        CleanJsonApp.new.run("#{path} -dv".split)
+        succeeded = true
+      rescue Exception => e
+      end
+      assert(succeeded == legal, "result with #{json_expr} unexpected")
+    end
   end
 
 end
