@@ -220,10 +220,27 @@ class CleanJson
     filtered
   end
 
+  DFA_SCRIPT=<<-'EOS'
+# Whitespace including comments of form  # ....,   // ....,   /* .... */
+WS: (   [\x00-\x20]+     |  \
+        (//|\#) [\x00-\x7f^\n]*   |  \
+        /\* ( \**[\x00-\x7f^/\*] |  [\x00-\x7f^\*] )* \*+ /  )+
+COMMA: ,
+COLON: :
+LISTOPEN: \[
+LISTCLOSE: \]
+MAPOPEN: \{
+MAPCLOSE: \}
+ID:   \w[\w\d]*
+FLOAT: [\+\-]?  (\d*\.\d+([eE][\+\-]?\d+)?|\d+)
+STRING: " ( [\x00-\x7f^\"\\] | \\[\x00-\x7f]  )* "
+BOOLEAN: (true|false)
+NULL: null
+EOS
+
   def dfa
     if @@dfa.nil?
-      dfa_file = File.join(File.dirname(File.expand_path(__FILE__)),'json_tokens.dfa')
-      @@dfa = Tokn::DFA.from_file(dfa_file)
+      @@dfa = Tokn::DFA.from_script(DFA_SCRIPT,File.join(Dir.home,'.cleanjson_dfa'))
     end
     @@dfa
   end
