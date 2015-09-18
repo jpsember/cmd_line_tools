@@ -75,6 +75,10 @@ class TestJsontoxml < JSTest
     process_sloppy("3_toxml.json")
   end
 
+  def test_missing_commas
+    process_sloppy("missing_commas.json")
+  end
+
   def test_locate_source_from_xml
     JsonToXmlApp.new.run("../sample_files/xml/sample5 -x -d".split)
   end

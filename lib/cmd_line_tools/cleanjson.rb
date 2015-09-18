@@ -87,8 +87,13 @@ class CleanJson
           break
         end
       else
-        read(MAPCLOSE)
-        break
+        if !peek(MAPCLOSE) && !peek(LISTCLOSE)
+          # Assume he's missing a comma
+          insert_missing(COMMA,',')
+        else
+          read(MAPCLOSE)
+          break
+        end
       end
     end
   end
@@ -109,8 +114,13 @@ class CleanJson
           break
         end
       else
-        read(LISTCLOSE)
-        break
+        if !peek(LISTCLOSE) && !peek(MAPCLOSE)
+          # Assume he's missing a comma
+          insert_missing(COMMA,',')
+        else
+          read(LISTCLOSE)
+          break
+        end
       end
     end
   end
@@ -139,6 +149,15 @@ class CleanJson
     @modified = true
     stack = pop_to_non_whitespace
     stack.pop
+    push_stacked_tokens(stack)
+  end
+
+  def insert_missing(id,text)
+    @modified = true
+    stack = pop_to_non_whitespace
+    last_token = stack.pop
+    stack << Tokn::Token.new(id,text,-1,-1)
+    stack << last_token
     push_stacked_tokens(stack)
   end
 
@@ -185,7 +204,7 @@ class CleanJson
       raise_exception("Unexpected end of input")
     end
     if exp && exp != token.id
-      raise_exception("Unexpected token",ret)
+      raise_exception("Unexpected token",token)
     end
     add_cleaned(token)
     @cursor += 1
