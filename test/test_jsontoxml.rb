@@ -141,4 +141,21 @@ class TestJsontoxml < JSTest
     end
   end
 
+  def test_xml_element_order_preserved
+   TestSnapshot.new.perform do
+      JsonToXmlApp.new.run("../sample_files/xml/web.json -x -o output.json".split)
+      JsonToXmlApp.new.run("output.json -o output.xml".split)
+      puts FileUtils.read_text_file("output.xml")
+    end
+  end
+
+  def test_xml_element_order_preserved2
+   TestSnapshot.new.perform do
+      JsonToXmlApp.new.run("../sample_files/xml/server.json -x -o output.json".split)
+      JsonToXmlApp.new.run("output.json -o output.xml -D".split)
+      puts FileUtils.read_text_file("output.xml")
+    end
+  end
+
+
 end
