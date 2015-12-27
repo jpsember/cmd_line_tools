@@ -25,10 +25,11 @@ class JsonToXmlApp
       opt :verbose, "verbose", :short => 'v'
       opt :fromxml, "convert xml -> json", :short => 'x'
       opt :output, "output file", :type => :string
-      opt :dry_run, "don't write anything"
+      opt :dry_run, "don't write anything", :short => 'd'
       opt :suffix, "suffix expected on json file", :default => "_toxml"
       opt :noclean, "don't clean up json"
       opt :cleanonly, "do json clean only"
+      opt :declaration, "include xml declaration", :short => 'D'
     end
 
     options = Trollop::with_standard_exception_handling p do
@@ -236,7 +237,15 @@ class JsonToXmlApp
 
   def encode_xml(hash)
     hash = prepare_value_for_xml(hash)
-    XmlSimple.xml_out(hash,'KeepRoot'=>true,'ContentKey'=>CONTENT_KEY)
+
+    opts = {}
+    opts['KeepRoot'] = true
+    opts['ContentKey'] = CONTENT_KEY
+    if @options[:declaration]
+      opts['xmldeclaration'] = true
+    end
+
+    XmlSimple.xml_out(hash,opts)
   end
 
   # Rewrite value to conform to what xml->json would have output with KeepRoot=true

@@ -129,4 +129,16 @@ class TestJsontoxml < JSTest
     end
   end
 
+  def test_declaration
+    TestSnapshot.new.perform do
+      puts "Without declaration:\n"
+      JsonToXmlApp.new.run("../sample_files/json/sample.json -o output.xml".split)
+      puts FileUtils.read_text_file("output.xml")
+      puts
+      puts "With declaration:\n"
+      JsonToXmlApp.new.run("../sample_files/json/sample.json -o output.xml -D".split)
+      puts FileUtils.read_text_file("output.xml")
+    end
+  end
+
 end
