@@ -2,7 +2,7 @@ require 'rake'
 
 Gem::Specification.new do |s|
   s.name        = 'cmd_line_tools'
-  s.version     = '1.1.11'
+  s.version     = '1.1.12'
   s.summary     = "Jeff's Ruby command line tools"
   s.description = "More to come"
   s.authors     = ["Jeff Sember"]

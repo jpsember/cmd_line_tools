@@ -9,7 +9,8 @@ class CleanJsonApp
 
     p = Trollop::Parser.new do
       opt :verbose, "verbose", :short => 'v'
-      opt :dry_run, "don't write anything"
+      opt :dry_run, "don't write anything", :short => 'd'
+      opt :pretty, "perform pretty printing", :short => 'p'
     end
 
     options = Trollop::with_standard_exception_handling p do
@@ -49,15 +50,22 @@ class CleanJsonApp
 
   def process_source(source)
     source = locate_source(source)
-    input = File.read(source)
+    content = File.read(source)
+    orig_content = content
 
-    cleaner = CleanJson.new(input)
-    return if !cleaner.modified
+    cleaner = CleanJson.new(content)
+    # return if !cleaner.modified
 
-    cleaned = cleaner.cleaned_source
-    puts "...writing cleaned #{source}:\n#{cleaned}\n" if @verbose
+    content = cleaner.cleaned_source
+    if @options[:pretty]
+      die "not supported"
+    end
+
+    return if content == orig_content
+
+    puts "...writing cleaned #{source}:\n#{content}\n" if @verbose
     if !@options[:dry_run]
-      FileUtils.write_text_file(source,cleaned)
+      FileUtils.write_text_file(source,content)
     end
   end
 end

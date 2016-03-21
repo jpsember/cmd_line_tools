@@ -51,10 +51,11 @@ class MakeGem
       banner <<-EOS
       Makes gem in directories given, or in current directory if none
   EOS
-      opt :noinstall, "don't install locally"
-      opt :doc,     "generate documentation"
+      opt :noinstall, "don't install locally", :short=>'I'
+      opt :doc, "generate documentation"
       opt :undocumented, "show undocumented source elements"
       opt :verbose, "display progress"
+      opt :noclean, "don't clean older versions of gem", :short=>'C'
       opt :bumpversion, "bump gem version number"
       opt :advice, "display more information about what to do with finished gem"
     end
@@ -91,7 +92,13 @@ class MakeGem
       scall("yard stats --list-undoc")
     end
 
-    install_gem_locally if !@options[:noinstall]
+    unless @options[:noinstall]
+      install_gem_locally
+      unless @options[:noclean]
+        scall "gem cleanup #{@project_name}"
+        @rehash_flag = true
+      end
+    end
   end
 
   # Bump the version number within a gemspec
