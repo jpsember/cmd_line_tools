@@ -139,7 +139,7 @@ class MakeGem
 
   def install_gem_locally
     echo "Installing gem locally"
-    scall("gem install #{@project_name}")
+    scall("gem install --local #{@project_name}")
     @rehash_flag = true
   end
 
