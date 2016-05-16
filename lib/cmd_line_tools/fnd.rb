@@ -98,7 +98,7 @@ EOS
   def run(args)
     parse_args(args)
 
-    cmd = "find . -name"
+    cmd = "find . -iname"
     @find_expressions.each do |ext|
       cmd += " \"#{ext}\""
     end
