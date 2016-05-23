@@ -10,17 +10,15 @@ class MkResApp
     p = Trollop::Parser.new do
       banner <<-EOS
 
-      Create a resource file, including the directories if necessary
+      Create a resource file or directory.
 
-      Example:  If in directory ".../x/main/java/y/z",
+       > mkres x/main/java/y/dir
 
-       > mkres foo.json
+      Will create the directory "x/main/resources/y/dir", if it doesn't already exist.
 
-      Will create the file ".../x/main/resources/y/z/foo.json" if it doesn't already exist.
+       > mkres x/main/java/y/file.ext
 
-       > mkres
-
-      Will create the directory ".../x/main/resources/y/z" if it doesn't already exist.
+      Will create the file "x/main/resources/y/file.ext" if it doesn't already exist.
 
       EOS
       opt :verbose, "verbose", :short => 'v'
@@ -32,9 +30,47 @@ class MkResApp
     end
 
     @options = options
-    @verbose = options[:verbose]
+    @dryrun = options[:dryrun]
+    @verbose = options[:verbose] || @dryrun
 
-    source_path = Dir.pwd
+    p.leftovers.each do |source|
+      process_source(source)
+    end
+  end
+
+  def process_source(source)
+
+    source_dir = nil
+    resource_name = nil
+
+    file_path = File.expand_path(source)
+
+    # If this is already a directory, just create the corresponding resource directory.
+    # If it's a non-existent file within an existing directory,
+
+    if File.directory?(file_path)
+      source_dir = file_path
+    else
+      if File.file?(file_path)
+        die "File already exists: #{file_path}"
+      end
+      source_dir = File.dirname(file_path)
+      resource_name = File.basename(file_path)
+    end
+    die "directory not found: #{source_dir}" unless File.directory?(source_dir)
+
+    resource_dir = find_resource_dir(source_dir)
+
+    if resource_name
+      file_path = File.join(resource_dir,resource_name)
+      return if File.exist?(file_path)
+      puts "...(create file #{file_path})" if @verbose
+      FileUtils.write_text_file(file_path,'') unless @dryrun
+    end
+
+  end
+
+  def find_resource_dir(source_path)
     subdir_stack = []
     prev_path = nil
     while true
@@ -52,23 +88,10 @@ class MkResApp
       resource_path = File.join(resource_path,subdir_stack.pop)
     end
     if !File.directory?(resource_path)
-      if options[:verbose] || options[:dry_run]
-        puts "...(create directory #{resource_path})"
-      end
-      if !options[:dry_run]
-        FileUtils.mkdir_p(resource_path)
-      end
+      puts "...(create directory #{resource_path})" if @verbose
+      FileUtils.mkdir_p(resource_path) unless @dryrun
     end
-
-    p.leftovers.each do |source|
-      file_path = File.join(resource_path,source)
-      next if File.exist?(file_path)
-      if options[:verbose] || options[:dry_run]
-        puts "...(create file #{file_path})"
-      end
-      next if options[:dry_run]
-      FileUtils.write_text_file(file_path,'')
-    end
+    resource_path
   end
 
 end
